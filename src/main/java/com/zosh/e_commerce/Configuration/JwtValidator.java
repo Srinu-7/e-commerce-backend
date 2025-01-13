@@ -20,8 +20,6 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.List;
 
-import static com.zosh.e_commerce.Configuration.JwtConstant.secretKey;
-
 public class JwtValidator extends OncePerRequestFilter {
 
     @Override
