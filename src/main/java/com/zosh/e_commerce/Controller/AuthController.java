@@ -1,12 +1,14 @@
 package com.zosh.e_commerce.Controller;
 
 import com.zosh.e_commerce.Configuration.JwtProvider;
-import com.zosh.e_commerce.Exception.UserException;
+import com.zosh.e_commerce.Exception.UserNotFoundException;
+import com.zosh.e_commerce.Model.Cart;
 import com.zosh.e_commerce.Model.User;
 import com.zosh.e_commerce.Repository.UserRepository;
 import com.zosh.e_commerce.Request.LoginRequest;
 import com.zosh.e_commerce.Response.AuthResponse;
-import com.zosh.e_commerce.Service.CustomUserServiceImplementation;
+import com.zosh.e_commerce.ServiceImplementation.AuthenticationServiceImplementation;
+import com.zosh.e_commerce.ServiceInterface.CartService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -20,6 +22,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.time.LocalDateTime;
+
 @RestController
 @RequestMapping("/auth")
 public class AuthController {
@@ -30,9 +34,11 @@ public class AuthController {
 
     private final PasswordEncoder passwordEncoder;
 
-    private final CustomUserServiceImplementation customUserServiceImplementation;
+    private final AuthenticationServiceImplementation authenticationServiceImplementation;
 
-    public AuthController(UserRepository userRepository, JwtProvider jwtProvider, PasswordEncoder passwordEncoder, CustomUserServiceImplementation customUserServiceImplementation) {
+    private final CartService cartService;
+
+    public AuthController(UserRepository userRepository, JwtProvider jwtProvider, PasswordEncoder passwordEncoder, AuthenticationServiceImplementation authenticationServiceImplementation, CartService cartService) {
 
         this.userRepository = userRepository;
 
@@ -40,12 +46,14 @@ public class AuthController {
 
         this.passwordEncoder = passwordEncoder;
 
-        this.customUserServiceImplementation = customUserServiceImplementation;
+        this.authenticationServiceImplementation = authenticationServiceImplementation;
+
+        this.cartService = cartService;
     }
 
 
     @PostMapping("/signUp")
-    public ResponseEntity<AuthResponse> createUserHandler(@RequestBody User user) throws UserException {
+    public ResponseEntity<AuthResponse> createUserHandler(@RequestBody User user) throws UserNotFoundException {
 
            String email = user.getEmail();
 
@@ -57,7 +65,7 @@ public class AuthController {
 
            User isEmailExists = userRepository.findByEmail(email);
 
-           if(isEmailExists != null) throw new UserException("email is already used with another account"+email);
+           if(isEmailExists != null) throw new UserNotFoundException("email is already used with another account"+email);
 
            User createdUser = new User();
 
@@ -69,7 +77,15 @@ public class AuthController {
 
            createdUser.setLastName(lastName);
 
+           createdUser.setPhone(user.getPhone());
+
+           createdUser.setRole(user.getRole());
+
+           createdUser.setCreatedAt(LocalDateTime.now());
+
            User savedUser = userRepository.save(createdUser);
+
+           Cart cart = cartService.createCart(savedUser);
 
            Authentication authentication = new UsernamePasswordAuthenticationToken(email, password);
 
@@ -83,7 +99,7 @@ public class AuthController {
     }
 
     @PostMapping("/signIn")
-    public ResponseEntity<AuthResponse> loginUserHandler(@RequestBody LoginRequest loginRequest) throws UserException {
+    public ResponseEntity<AuthResponse> loginUserHandler(@RequestBody LoginRequest loginRequest) throws UserNotFoundException {
 
         String userName = loginRequest.getEmail();
 
@@ -102,7 +118,7 @@ public class AuthController {
 
     private Authentication authenticate(String userName, String password) {
 
-        UserDetails userDetails = customUserServiceImplementation.loadUserByUsername(userName);
+        UserDetails userDetails = authenticationServiceImplementation.loadUserByUsername(userName);
 
         if(userDetails == null) throw new BadCredentialsException("invalid username");
 

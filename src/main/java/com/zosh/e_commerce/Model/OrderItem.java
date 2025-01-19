@@ -2,32 +2,42 @@ package com.zosh.e_commerce.Model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import lombok.experimental.FieldDefaults;
 
 import java.time.LocalDateTime;
 
 @Entity
-@NoArgsConstructor
 @AllArgsConstructor
+@NoArgsConstructor
 @Data
 @FieldDefaults(level = AccessLevel.PRIVATE)
-@Builder
-public class Rating {
+public class OrderItem {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     Long id;
 
-    @JoinColumn
-    @ManyToOne
-    User user;
-
     @JsonIgnore
-    @JoinColumn
+    @ManyToOne
+    Orders orders;
+
     @ManyToOne
     Product product;
 
-    double rating;
+    String size;
 
-    LocalDateTime createdAt;
+    int quantity;
+
+    Integer price;
+
+    Integer discountedPrice;
+
+    Long userId;
+
+    LocalDateTime deliveryDate;
+
+
 }

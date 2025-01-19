@@ -13,11 +13,7 @@ import java.util.Date;
 @Service
 public class JwtProvider {
 
-    private final SecretKey key;
-
-    public JwtProvider() {
-        this.key = Keys.secretKeyFor(SignatureAlgorithm.HS256); // Generate a secure key
-    }
+    SecretKey key = Keys.hmacShaKeyFor(JwtConstant.secretKey.getBytes());
 
     public String generateToken(Authentication authentication) {
             String jwt = Jwts.builder()

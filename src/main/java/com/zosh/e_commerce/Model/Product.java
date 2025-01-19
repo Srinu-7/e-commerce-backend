@@ -8,6 +8,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Entity
 @NoArgsConstructor
@@ -38,7 +39,7 @@ public class Product {
 
     @ElementCollection
     @Embedded
-    HashSet<Size> sizes = new HashSet<>();
+    List<Size> size = new ArrayList<>();
 
     String imageUrl;
 

@@ -21,7 +21,7 @@ public class Category {
     String name;
 
     @ManyToOne
-    @JoinColumn(name = "parentCategoryId")
+    @JoinColumn
     Category parentCategory;
 
     int level;

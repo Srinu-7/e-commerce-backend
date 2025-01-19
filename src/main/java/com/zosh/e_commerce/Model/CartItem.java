@@ -5,29 +5,32 @@ import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
-import java.time.LocalDateTime;
-
 @Entity
 @NoArgsConstructor
 @AllArgsConstructor
 @Data
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @Builder
-public class Rating {
+public class CartItem {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     Long id;
 
-    @JoinColumn
-    @ManyToOne
-    User user;
-
     @JsonIgnore
-    @JoinColumn
+    @ManyToOne
+    Cart cart;
+
     @ManyToOne
     Product product;
 
-    double rating;
+    String size;
 
-    LocalDateTime createdAt;
+    int quantity;
+
+    Integer price;
+
+    Integer discountedPrice;
+
+    Long userId;
+
 }

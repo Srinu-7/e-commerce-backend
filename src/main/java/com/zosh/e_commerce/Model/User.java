@@ -36,10 +36,9 @@ public class User {
     @OneToMany(mappedBy = "user",cascade = CascadeType.ALL)
     List<Address> addressList = new ArrayList<>();
 
-    @Embedded
     @ElementCollection
-    @CollectionTable(name = "paymentInformation",joinColumns = @JoinColumn(name = "userId"))
-    List<PaymentInformation> paymentInformations = new ArrayList<>();
+    @CollectionTable(name = "paymentInformation",joinColumns = @JoinColumn)
+    List<PaymentInformation> paymentInformation = new ArrayList<>();
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     @JsonIgnore

@@ -1,9 +1,9 @@
-package com.zosh.e_commerce.Service;
+package com.zosh.e_commerce.ServiceImplementation;
+
 
 import com.zosh.e_commerce.Model.User;
 import com.zosh.e_commerce.Repository.UserRepository;
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -13,14 +13,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Service
-public class CustomUserServiceImplementation implements UserDetailsService {
+public class AuthenticationServiceImplementation implements UserDetailsService {
 
     private final UserRepository userRepository;
 
-    public CustomUserServiceImplementation(UserRepository userRepository) {
+    public AuthenticationServiceImplementation(UserRepository userRepository) {
         this.userRepository = userRepository;
     }
-
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
