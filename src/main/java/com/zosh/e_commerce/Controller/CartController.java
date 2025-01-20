@@ -4,9 +4,12 @@ import com.zosh.e_commerce.Exception.CartItemNotFoundException;
 import com.zosh.e_commerce.Exception.ProductNotFoundException;
 import com.zosh.e_commerce.Exception.UserNotFoundException;
 import com.zosh.e_commerce.Model.Cart;
+import com.zosh.e_commerce.Model.CartItem;
+import com.zosh.e_commerce.Model.Product;
 import com.zosh.e_commerce.Model.User;
 import com.zosh.e_commerce.Request.CartItemRequest;
 import com.zosh.e_commerce.ServiceInterface.CartService;
+import com.zosh.e_commerce.ServiceInterface.ProductService;
 import com.zosh.e_commerce.ServiceInterface.UserService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -20,11 +23,15 @@ public class CartController {
 
     private final UserService userService;
 
-    public CartController(CartService cartService, UserService userService) {
+    private final ProductService productService;
+
+    public CartController(CartService cartService, UserService userService,ProductService productService) {
 
         this.cartService = cartService;
 
         this.userService = userService;
+
+        this.productService = productService;
 
     }
 
@@ -48,6 +55,39 @@ public class CartController {
         String response = cartService.addItemToCart(user.getId(), cartItemRequest);
 
         return new ResponseEntity<>(response, HttpStatus.OK);
+    }
+
+    @DeleteMapping("/{cartItemId}/delete")
+    public ResponseEntity<String> deleteCartItem(@PathVariable("cartItemId") Long cartItemId, @RequestHeader("Authorization") String jwt) throws UserNotFoundException, CartItemNotFoundException {
+
+        User user = userService.findUserProfileByJwt(jwt);
+
+        cartService.deleteCartItem(user.getId(),cartItemId);
+
+        return new ResponseEntity<>("Deleted", HttpStatus.OK);
+    }
+
+
+    @GetMapping("/exist")
+    public ResponseEntity<CartItem> isCartItemExist(@RequestBody CartItemRequest cartItemRequest,@RequestHeader("Authorization") String jwt) throws UserNotFoundException, ProductNotFoundException {
+
+        User user = userService.findUserProfileByJwt(jwt);
+
+        Cart cart = cartService.findUserCart(user.getId());
+
+        Product product = productService.findProductById(cartItemRequest.getProductId());
+
+        CartItem cartItem = cartService.isCartItemExist(cart,product, cartItemRequest.getSize(), user.getId());
+
+        return new ResponseEntity<>(cartItem, HttpStatus.OK);
+    }
+
+    @GetMapping("/{Id}")
+    public ResponseEntity<CartItem> getCartItem(@PathVariable("Id") Long cartItemId) throws CartItemNotFoundException {
+
+        CartItem cartItem = cartService.findCartItemByCartItemId(cartItemId);
+
+        return new ResponseEntity<>(cartItem, HttpStatus.OK);
     }
 
 }

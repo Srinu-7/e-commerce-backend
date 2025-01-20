@@ -63,7 +63,7 @@ public class OrderServiceImplementation implements OrderService {
 
         List<OrderItem> orderItems = new ArrayList<>();
 
-        Set<CartItem> items = new HashSet<>(cart.getItems());
+        List<CartItem> items = new ArrayList<>(cart.getItems());
 
         for (CartItem item : items) {
 
@@ -87,6 +87,8 @@ public class OrderServiceImplementation implements OrderService {
         }
 
         Orders order = new Orders();
+
+        order.setPaymentDetails(new PaymentDetails());
 
         order.setUser(user);
 
