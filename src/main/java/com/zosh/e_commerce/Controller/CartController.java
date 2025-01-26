@@ -58,13 +58,13 @@ public class CartController {
     }
 
     @DeleteMapping("/{cartItemId}/delete")
-    public ResponseEntity<String> deleteCartItem(@PathVariable("cartItemId") Long cartItemId, @RequestHeader("Authorization") String jwt) throws UserNotFoundException, CartItemNotFoundException {
+    public ResponseEntity<CartItem> deleteCartItem(@PathVariable("cartItemId") Long cartItemId, @RequestHeader("Authorization") String jwt) throws UserNotFoundException, CartItemNotFoundException {
 
         User user = userService.findUserProfileByJwt(jwt);
 
-        cartService.deleteCartItem(user.getId(),cartItemId);
+        CartItem cartItem = cartService.deleteCartItem(user.getId(),cartItemId);
 
-        return new ResponseEntity<>("Deleted", HttpStatus.OK);
+        return new ResponseEntity<>(cartItem, HttpStatus.OK);
     }
 
 
@@ -86,6 +86,16 @@ public class CartController {
     public ResponseEntity<CartItem> getCartItem(@PathVariable("Id") Long cartItemId) throws CartItemNotFoundException {
 
         CartItem cartItem = cartService.findCartItemByCartItemId(cartItemId);
+
+        return new ResponseEntity<>(cartItem, HttpStatus.OK);
+    }
+
+    @PutMapping("/update/{cartItemId}/{quantity}")
+    public ResponseEntity<CartItem> updateCartItem(@PathVariable("cartItemId") Long cartItemId, @PathVariable("quantity") int quantity,@RequestHeader("Authorization") String jwt) throws CartItemNotFoundException,UserNotFoundException{
+
+         User user = userService.findUserProfileByJwt(jwt);
+
+        CartItem cartItem = cartService.updateCartItem(cartItemId,quantity,user.getId());
 
         return new ResponseEntity<>(cartItem, HttpStatus.OK);
     }

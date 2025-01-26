@@ -24,12 +24,12 @@ public class ProductController {
 
     @GetMapping("/")
     public ResponseEntity<Page<Product>> findProductByCategoryHandler(@RequestParam String category,@RequestParam List<String> colors,
-                                                                      @RequestParam List<String> size,@RequestParam Integer minPrice,
+                                                                      @RequestParam List<String> sizes,@RequestParam Integer minPrice,
                                                                       @RequestParam Integer maxPrice,@RequestParam Integer minDiscount,
                                                                       @RequestParam String sort,@RequestParam String stock,
                                                                       @RequestParam Integer pageNumber,@RequestParam Integer pageSize) {
 
-          Page<Product> res = productService.getAllProductS(category,colors,size,minPrice,maxPrice,minDiscount,sort,stock,pageNumber,pageSize);
+          Page<Product> res = productService.getAllProductS(category,colors,sizes,minPrice,maxPrice,minDiscount,sort,stock,pageNumber,pageSize);
 
           return new ResponseEntity<>(res, HttpStatus.ACCEPTED);
     }

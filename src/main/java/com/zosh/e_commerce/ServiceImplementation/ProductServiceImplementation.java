@@ -14,6 +14,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -123,33 +124,43 @@ public class ProductServiceImplementation implements ProductService {
 
         Pageable pageable = PageRequest.of(pageNumber, pageSize);
 
-        List<Product> productList = productRepository.filterProducts(category,minPrice,maxPrice,minDiscount,sort);
+        // Fetch filtered products from the repository
+        List<Product> productList = productRepository.filterProducts(category, minPrice, maxPrice, minDiscount, sort);
 
-        if(colors.size() > 0){
-
-            productList = productList.stream().filter(p -> colors.stream().anyMatch(c -> c.equalsIgnoreCase(p.getColor()))).collect(Collectors.toList());
+        // Filter by colors if provided
+        if (colors != null && !colors.isEmpty()) {
+            productList = productList.stream()
+                    .filter(p -> colors.stream().anyMatch(c -> c.equalsIgnoreCase(p.getColor())))
+                    .collect(Collectors.toList());
         }
 
-        if(stock != null){
-
-            if(stock.equals("In Stock")){
-                productList = productList.stream().filter(p -> p.getQuantity() > 0).collect(Collectors.toList());
-            }
-
-            else if(stock.equals("Out of Stock")){
-                productList = productList.stream().filter(p -> p.getQuantity() == 0).collect(Collectors.toList());
+        // Filter by stock status if provided
+        if (stock != null) {
+            if (stock.equals("In Stock")) {
+                productList = productList.stream()
+                        .filter(p -> p.getQuantity() > 0)
+                        .collect(Collectors.toList());
+            } else if (stock.equals("Out of Stock")) {
+                productList = productList.stream()
+                        .filter(p -> p.getQuantity() == 0)
+                        .collect(Collectors.toList());
             }
         }
 
-        int startIndex = (int)pageable.getOffset();
+        // Calculate startIndex and endIndex for pagination
+        int startIndex = (int) pageable.getOffset();
+        int endIndex = Math.min(startIndex + pageable.getPageSize(), productList.size());
 
-        int endIndex = Math.min(startIndex+pageable.getPageSize(), productList.size());
+        // Handle case where startIndex is out of bounds
+        if (startIndex >= productList.size()) {
+            return new PageImpl<>(Collections.emptyList(), pageable, productList.size());
+        }
 
+        // Create sublist for the current page
         List<Product> pageContent = productList.subList(startIndex, endIndex);
 
-        Page<Product> filteredProducts = new PageImpl<>(pageContent, pageable, productList.size());
-
-        return filteredProducts;
+        // Create and return the paginated result
+        return new PageImpl<>(pageContent, pageable, productList.size());
     }
 
     @Override

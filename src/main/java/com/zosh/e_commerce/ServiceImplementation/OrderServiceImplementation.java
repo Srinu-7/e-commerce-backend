@@ -63,7 +63,7 @@ public class OrderServiceImplementation implements OrderService {
 
         List<OrderItem> orderItems = new ArrayList<>();
 
-        List<CartItem> items = new ArrayList<>(cart.getItems());
+        List<CartItem> items = new ArrayList<>(cart.getCartItems());
 
         for (CartItem item : items) {
 

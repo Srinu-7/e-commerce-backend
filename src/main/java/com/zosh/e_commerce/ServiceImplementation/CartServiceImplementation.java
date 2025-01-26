@@ -16,6 +16,9 @@ import com.zosh.e_commerce.ServiceInterface.ProductService;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Service
 public class CartServiceImplementation implements CartService {
 
@@ -39,17 +42,36 @@ public class CartServiceImplementation implements CartService {
     @Override
     @Transactional
     public Cart findUserCart(Long userId) {
-        return cartRepository.findByUserId(userId);
+
+        Cart cart = cartRepository.findByUserId(userId);
+
+        int totalPrice = 0;
+        int totalQuantity = 0;
+        int totalDiscountedPrice = 0;
+
+        List<CartItem> items = cart.getCartItems();
+
+        for (CartItem item : items) {
+
+            totalPrice = totalPrice + item.getPrice();
+
+            totalQuantity = totalQuantity + item.getQuantity();
+
+            totalDiscountedPrice = totalDiscountedPrice + item.getDiscountedPrice();
+        }
+
+        cart.setTotalPrice(totalPrice);
+        cart.setTotalQuantity(totalQuantity);
+        cart.setTotalDiscountedPrice(totalDiscountedPrice);
+        cart.setDiscount((int)totalPrice-totalDiscountedPrice);
+
+        return cartRepository.save(cart);
     }
 
     @Override
     public Cart createCart(User user) {
         Cart cart = new Cart();
         cart.setUser(user);
-        cart.setDiscount(0);
-        cart.setTotalPrice(0.0);  // Make sure to initialize totalPrice as a double
-        cart.setTotalQuantity(0);
-        cart.setTotalDiscountedPrice(0); // Keep totalDiscountedPrice as int
         return cartRepository.save(cart);
     }
 
@@ -57,45 +79,37 @@ public class CartServiceImplementation implements CartService {
     @Transactional
     public String addItemToCart(Long userId, CartItemRequest cartItemRequest)
             throws ProductNotFoundException, CartItemNotFoundException, UserNotFoundException {
-        Cart cart = findUserCart(userId);
+        Cart cart = cartRepository.findByUserId(userId);
         Product product = productService.findProductById(cartItemRequest.getProductId());
 
         CartItem existingCartItem = isCartItemExist(cart, product, cartItemRequest.getSize(), userId);
 
         if (existingCartItem == null) {
-            if(cartItemRequest.getQuantity() <= 0) throw new ProductNotFoundException("product has no quantity");
             CartItem cartItem = new CartItem();
             cartItem.setProduct(product);
             cartItem.setCart(cart);
-            cartItem.setQuantity(cartItemRequest.getQuantity());
+            cartItem.setQuantity(1);
             cartItem.setUserId(userId);
             cartItem.setSize(cartItemRequest.getSize());
-            cartItem.setDiscountedPrice(cartItem.getQuantity() * product.getDiscountedPrice());
-            cartItem.setPrice(cartItem.getQuantity() * product.getPrice());
-
-            cart.setTotalPrice(cart.getTotalPrice() + cartItem.getQuantity() * product.getPrice());
-            cart.setTotalQuantity(cart.getTotalQuantity() + cartItem.getQuantity());
-            cart.setTotalDiscountedPrice(cart.getTotalDiscountedPrice() + cartItem.getQuantity() * product.getDiscountedPrice());
-            cart.setDiscount((int)cart.getTotalPrice()-cart.getTotalDiscountedPrice());
-
-            cartRepository.save(cart);
-            cartItemRepository.save(cartItem);
-            cart.getItems().add(cartItem);
-        } else {
-            if (cartItemRequest.getQuantity() > 0) {
-                addQuantityToCartItem(cartItemRequest, userId);
-            } else if(cartItemRequest.getQuantity() < 0){
-                reduceQuantityFromCartItem(cartItemRequest, userId);
-            }
+            cartItem.setDiscountedPrice(product.getDiscountedPrice());
+            cartItem.setPrice(product.getPrice());
+            CartItem savedItem = cartItemRepository.save(cartItem);
+            cart.getCartItems().add(savedItem);
+        }
+        else{
+            existingCartItem.setQuantity(existingCartItem.getQuantity() + 1);
+            existingCartItem.setDiscountedPrice(existingCartItem.getQuantity() * product.getDiscountedPrice());
+            existingCartItem.setPrice(existingCartItem.getQuantity() * product.getPrice());
+            cartItemRepository.save(existingCartItem);
         }
 
-        return "Cart updated successfully.";
+        return "item added succesfully";
     }
 
     @Override
-    public void deleteCartItem(Long userId, Long cartItemId) throws CartItemNotFoundException, UserNotFoundException {
+    public CartItem deleteCartItem(Long userId, Long cartItemId) throws CartItemNotFoundException, UserNotFoundException {
 
-        Cart cart = findUserCart(userId);
+        Cart cart = cartRepository.findByUserId(userId);
 
         CartItem cartItem = cartItemRepository.findById(cartItemId).get();
 
@@ -103,79 +117,21 @@ public class CartServiceImplementation implements CartService {
 
         if (!cartItem.getUserId().equals(userId)) throw new UserNotFoundException("User is not authorized to remove this cart item.");
 
-        int totalQuantity = cartItem.getQuantity();
-        int totalDiscountedPrice = totalQuantity * product.getDiscountedPrice();
-        int totalPrice = totalQuantity * product.getPrice();
+        cart.getCartItems().remove(cartItem);
 
-        cart.setTotalQuantity(cart.getTotalQuantity() -totalQuantity);
-        cart.setTotalPrice(cart.getTotalPrice()-totalPrice);
-        cart.setTotalDiscountedPrice(cart.getTotalDiscountedPrice()-totalDiscountedPrice);
-        cart.setDiscount((int)cart.getTotalPrice()-cart.getTotalDiscountedPrice());
-
-        cart.getItems().remove(cartItem);
         cartItemRepository.delete(cartItem);
-        cartRepository.save(cart);
+
+        return cartItem;
     }
 
     @Override
     @Transactional
-    public CartItem addQuantityToCartItem(CartItemRequest cartItemRequest, Long userId) throws CartItemNotFoundException {
-        Cart cart = findUserCart(userId);
-        Product product = productRepository.findById(cartItemRequest.getProductId()).get();
-
-        CartItem cartItem = isCartItemExist(cart, product, cartItemRequest.getSize(), userId);
-
-        int totalQuantity = Math.min(cartItem.getQuantity() + cartItemRequest.getQuantity(),product.getQuantity());
-        int totalDiscountedPrice = totalQuantity * product.getDiscountedPrice();
-        int totalPrice = totalQuantity * product.getPrice();
-
-        int QuantityToadd = totalQuantity-cartItem.getQuantity();
-
-        cartItem.setQuantity(totalQuantity);
-        cartItem.setDiscountedPrice(totalDiscountedPrice);
-        cartItem.setPrice(totalPrice);
-
-        cart.setTotalQuantity(cart.getTotalQuantity() + QuantityToadd);
-        cart.setTotalPrice(cart.getTotalPrice()+ QuantityToadd*product.getPrice());
-        cart.setTotalDiscountedPrice(cart.getTotalDiscountedPrice()+ QuantityToadd*product.getDiscountedPrice());
-        cart.setDiscount((int)cart.getTotalPrice()-cart.getTotalDiscountedPrice());
-
-        cartRepository.save(cart);
-
-        return cartItemRepository.save(cartItem);
-    }
-
-    @Override
-    @Transactional
-    public CartItem reduceQuantityFromCartItem(CartItemRequest cartItemRequest, Long userId) throws CartItemNotFoundException {
-        Cart cart = findUserCart(userId);
-        Product product = productRepository.findById(cartItemRequest.getProductId()).get();
-
-        CartItem cartItem = isCartItemExist(cart, product, cartItemRequest.getSize(), userId);
-
-        int totalQuantity = Math.max(cartItem.getQuantity() + cartItemRequest.getQuantity(),0);
-        int totalDiscountedPrice = totalQuantity * product.getDiscountedPrice();
-        int totalPrice = totalQuantity * product.getPrice();
-
-        int quantityToSubstract = cartItem.getQuantity()-totalQuantity;
-
-        cartItem.setQuantity(totalQuantity);
-        cartItem.setDiscountedPrice(totalDiscountedPrice);
-        cartItem.setPrice(totalPrice);
-
-        cart.setTotalQuantity(cart.getTotalQuantity() - quantityToSubstract);
-        cart.setTotalPrice(cart.getTotalPrice()- quantityToSubstract*product.getPrice());
-        cart.setTotalDiscountedPrice(cart.getTotalDiscountedPrice()- quantityToSubstract*product.getDiscountedPrice());
-        cart.setDiscount((int)cart.getTotalPrice()-cart.getTotalDiscountedPrice());
-
-        cartRepository.save(cart);
-
-        if (totalQuantity == 0) {
-            cart.getItems().remove(cartItem);
-            cartItemRepository.delete(cartItem);
-            return cartItem;
-        }
-
+    public CartItem updateCartItem(Long cartItemId,int quantity, Long userId) throws CartItemNotFoundException {
+        Cart cart = cartRepository.findByUserId(userId);
+        CartItem cartItem = findCartItemByCartItemId(cartItemId);
+        cartItem.setQuantity(quantity);
+        cartItem.setDiscountedPrice(quantity * cartItem.getProduct().getDiscountedPrice());
+        cartItem.setPrice(quantity * cartItem.getProduct().getPrice());
         return cartItemRepository.save(cartItem);
     }
 

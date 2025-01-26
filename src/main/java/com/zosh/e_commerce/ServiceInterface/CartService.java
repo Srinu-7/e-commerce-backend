@@ -24,13 +24,10 @@ public interface CartService {
             throws ProductNotFoundException, CartItemNotFoundException, UserNotFoundException;
 
     // Delete an item from the user's cart
-    void deleteCartItem(Long userId, Long cartItemId) throws CartItemNotFoundException, UserNotFoundException;
-
-    // Add quantity to an existing cart item
-    CartItem addQuantityToCartItem(CartItemRequest cartItemRequest, Long userId) throws CartItemNotFoundException;
+    CartItem deleteCartItem(Long userId, Long cartItemId) throws CartItemNotFoundException, UserNotFoundException;
 
     // Reduce quantity of an existing cart item
-    CartItem reduceQuantityFromCartItem(CartItemRequest cartItemRequest, Long userId) throws CartItemNotFoundException;
+    CartItem updateCartItem(Long cartItemId,int quantity, Long userId) throws CartItemNotFoundException;
 
     // Check if the cart item already exists in the cart
     CartItem isCartItemExist(Cart cart, Product product, String size, Long userId);
