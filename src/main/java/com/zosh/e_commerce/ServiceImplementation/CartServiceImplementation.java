@@ -49,7 +49,7 @@ public class CartServiceImplementation implements CartService {
         int totalQuantity = 0;
         int totalDiscountedPrice = 0;
 
-        List<CartItem> items = cart.getCartItems();
+        List<CartItem> items = new ArrayList<>(cart.getCartItems());
 
         for (CartItem item : items) {
 
