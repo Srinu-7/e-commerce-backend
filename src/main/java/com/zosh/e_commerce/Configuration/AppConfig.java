@@ -36,7 +36,7 @@ public class AppConfig {
                     public CorsConfiguration getCorsConfiguration(HttpServletRequest request) {
 
                         CorsConfiguration config = new CorsConfiguration();
-                        config.setAllowedOrigins(Arrays.asList("http://localhost:3000","http://localhost:4200"));
+                        config.setAllowedOrigins(Arrays.asList("http://localhost:3000","http://localhost:4200","https://swiftbuy-eight.vercel.app"));
                         config.setAllowedMethods(Collections.singletonList("*"));
                         config.setAllowCredentials(true);
                         config.addAllowedHeader("*");
