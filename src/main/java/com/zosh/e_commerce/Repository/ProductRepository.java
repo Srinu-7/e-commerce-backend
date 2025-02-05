@@ -10,12 +10,12 @@ import java.util.List;
 @Repository
 public interface ProductRepository extends JpaRepository<Product, Long> {
     @Query(value = "SELECT p FROM Product p WHERE "
-            + "(:category IS NULL OR p.category.name = :category) "
+            + "(:category = 'null' OR p.category.name = :category) "
             + "AND (:minPrice IS NULL OR p.discountedPrice >= :minPrice) "
             + "AND (:maxPrice IS NULL OR p.discountedPrice <= :maxPrice) "
             + "AND (:minDiscount IS NULL OR p.discountPercentage >= :minDiscount) "
             + "ORDER BY CASE WHEN :sort = 'low-high' THEN p.discountedPrice "
-            + "              WHEN :sort = 'high-low' THEN -p.discountedPrice "
+            + "              WHEN :sort = 'high-low' THEN p.discountedPrice "
             + "              ELSE p.discountedPrice END")
     List<Product> filterProducts(@Param("category") String category,
                                  @Param("minPrice") Integer minPrice,

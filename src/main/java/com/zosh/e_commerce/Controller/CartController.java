@@ -98,6 +98,7 @@ public class CartController {
         CartItem cartItem = cartService.updateCartItem(cartItemId,quantity,user.getId());
 
         return new ResponseEntity<>(cartItem, HttpStatus.OK);
+
     }
 
 }

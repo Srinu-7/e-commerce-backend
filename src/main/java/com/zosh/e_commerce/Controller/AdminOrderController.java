@@ -30,7 +30,7 @@ public class AdminOrderController {
     }
 
     @PutMapping("/{orderId}/confirmed")
-    public ResponseEntity<Orders> ConfirmedOrderHandler(@PathVariable Long orderId, @RequestHeader("Autherization") String jwt) throws OrderNotFoundException {
+    public ResponseEntity<Orders> ConfirmedOrderHandler(@PathVariable Long orderId, @RequestHeader("Authorization") String jwt) throws OrderNotFoundException {
 
         Orders order = orderService.confirmedOrder(orderId);
 
@@ -39,7 +39,7 @@ public class AdminOrderController {
      }
 
     @PutMapping("/{orderId}/shipped")
-    public ResponseEntity<Orders> ShippedOrderHandler(@PathVariable Long orderId, @RequestHeader("Autherization") String jwt) throws OrderNotFoundException {
+    public ResponseEntity<Orders> ShippedOrderHandler(@PathVariable Long orderId, @RequestHeader("Authorization") String jwt) throws OrderNotFoundException {
 
         Orders order = orderService.shippedOrder(orderId);
 
@@ -48,7 +48,7 @@ public class AdminOrderController {
     }
 
     @PutMapping("/{orderId}/delivered")
-    public ResponseEntity<Orders> DeliveredOrderHandler(@PathVariable Long orderId, @RequestHeader("Autherization") String jwt) throws OrderNotFoundException {
+    public ResponseEntity<Orders> DeliveredOrderHandler(@PathVariable Long orderId, @RequestHeader("Authorization") String jwt) throws OrderNotFoundException {
 
         Orders order = orderService.deliveredOrder(orderId);
 
@@ -57,7 +57,7 @@ public class AdminOrderController {
     }
 
     @PutMapping("/{orderId}/cancelled")
-    public ResponseEntity<Orders> CancelledOrderHandler(@PathVariable Long orderId, @RequestHeader("Autherization") String jwt) throws OrderNotFoundException {
+    public ResponseEntity<Orders> CancelledOrderHandler(@PathVariable Long orderId, @RequestHeader("Authorization") String jwt) throws OrderNotFoundException {
 
         Orders order = orderService.canceledOrder(orderId);
 
@@ -66,7 +66,7 @@ public class AdminOrderController {
     }
 
     @DeleteMapping("/{orderId}/deleted")
-    public String DeletedOrderHandler(@PathVariable Long orderId, @RequestHeader("Autherization") String jwt) throws OrderNotFoundException {
+    public String DeletedOrderHandler(@PathVariable Long orderId, @RequestHeader("Authorization") String jwt) throws OrderNotFoundException {
 
         orderService.deleteOrderById(orderId);
 
